@@ -1,0 +1,409 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file    stm32f4xx_it.c
+  * @brief   Interrupt Service Routines.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2023 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "stm32f4xx_it.h"
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "usb_device.h"
+#include "ADXIS.h" 
+#include "lis3mdl.h"
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN TD */
+
+/* USER CODE END TD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+extern USBD_HandleTypeDef hUsbDeviceFS;
+extern	uint8_t BZ_1;
+extern	uint8_t BZ_2;
+extern	uint8_t flag_1;
+extern	uint8_t flag_2;
+extern  ADX_t imu;
+extern  uint8_t lis3[6];
+
+int i = 0;
+int h = 0;
+uint8_t tbuf[180];
+uint8_t ttbuf[180];
+
+#define DMA_Size 750  //采样点数
+extern uint16_t ADC_DMA_ConvertedValue_0[DMA_Size*2];
+extern uint16_t ADC_DMA_ConvertedValue_1[DMA_Size*2];
+	uint8_t adc[DMA_Size*4];
+	uint8_t adcx[DMA_Size*3];
+/* USER CODE END 0 */
+
+/* External variables --------------------------------------------------------*/
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern DMA_HandleTypeDef hdma_adc1;
+extern DMA_HandleTypeDef hdma_sdio_rx;
+extern DMA_HandleTypeDef hdma_sdio_tx;
+extern SD_HandleTypeDef hsd;
+extern TIM_HandleTypeDef htim3;
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
+
+/******************************************************************************/
+/*           Cortex-M4 Processor Interruption and Exception Handlers          */
+/******************************************************************************/
+/**
+  * @brief This function handles Non maskable interrupt.
+  */
+void NMI_Handler(void)
+{
+  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+
+  /* USER CODE END NonMaskableInt_IRQn 0 */
+  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+  while (1)
+  {
+  }
+  /* USER CODE END NonMaskableInt_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Hard fault interrupt.
+  */
+void HardFault_Handler(void)
+{
+  /* USER CODE BEGIN HardFault_IRQn 0 */
+
+  /* USER CODE END HardFault_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    /* USER CODE END W1_HardFault_IRQn 0 */
+  }
+}
+
+/**
+  * @brief This function handles Memory management fault.
+  */
+void MemManage_Handler(void)
+{
+  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+
+  /* USER CODE END MemoryManagement_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+    /* USER CODE END W1_MemoryManagement_IRQn 0 */
+  }
+}
+
+/**
+  * @brief This function handles Pre-fetch fault, memory access fault.
+  */
+void BusFault_Handler(void)
+{
+  /* USER CODE BEGIN BusFault_IRQn 0 */
+
+  /* USER CODE END BusFault_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_BusFault_IRQn 0 */
+    /* USER CODE END W1_BusFault_IRQn 0 */
+  }
+}
+
+/**
+  * @brief This function handles Undefined instruction or illegal state.
+  */
+void UsageFault_Handler(void)
+{
+  /* USER CODE BEGIN UsageFault_IRQn 0 */
+
+  /* USER CODE END UsageFault_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+    /* USER CODE END W1_UsageFault_IRQn 0 */
+  }
+}
+
+/**
+  * @brief This function handles System service call via SWI instruction.
+  */
+void SVC_Handler(void)
+{
+  /* USER CODE BEGIN SVCall_IRQn 0 */
+
+  /* USER CODE END SVCall_IRQn 0 */
+  /* USER CODE BEGIN SVCall_IRQn 1 */
+
+  /* USER CODE END SVCall_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Debug monitor.
+  */
+void DebugMon_Handler(void)
+{
+  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+
+  /* USER CODE END DebugMonitor_IRQn 0 */
+  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+
+  /* USER CODE END DebugMonitor_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Pendable request for system service.
+  */
+void PendSV_Handler(void)
+{
+  /* USER CODE BEGIN PendSV_IRQn 0 */
+
+  /* USER CODE END PendSV_IRQn 0 */
+  /* USER CODE BEGIN PendSV_IRQn 1 */
+
+  /* USER CODE END PendSV_IRQn 1 */
+}
+
+/**
+  * @brief This function handles System tick timer.
+  */
+void SysTick_Handler(void)
+{
+  /* USER CODE BEGIN SysTick_IRQn 0 */
+
+  /* USER CODE END SysTick_IRQn 0 */
+  HAL_IncTick();
+  /* USER CODE BEGIN SysTick_IRQn 1 */
+
+  /* USER CODE END SysTick_IRQn 1 */
+}
+
+/******************************************************************************/
+/* STM32F4xx Peripheral Interrupt Handlers                                    */
+/* Add here the Interrupt Handlers for the used peripherals.                  */
+/* For the available peripheral interrupt handler names,                      */
+/* please refer to the startup file (startup_stm32f4xx.s).                    */
+/******************************************************************************/
+
+/**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+
+  /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles SDIO global interrupt.
+  */
+void SDIO_IRQHandler(void)
+{
+  /* USER CODE BEGIN SDIO_IRQn 0 */
+
+  /* USER CODE END SDIO_IRQn 0 */
+  HAL_SD_IRQHandler(&hsd);
+  /* USER CODE BEGIN SDIO_IRQn 1 */
+
+  /* USER CODE END SDIO_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream0 global interrupt.
+  */
+void DMA2_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  //  HAL_DMA_IRQHandler(&hdma_adc1);
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+ 	if(__HAL_DMA_GET_FLAG(&hdma_adc1,DMA_FLAG_TCIF0_4)!=RESET)//DMA传输完成
+    {
+    __HAL_DMA_CLEAR_FLAG(&hdma_adc1,DMA_FLAG_TCIF0_4);//清除DMA传输完成中断标志位    
+			if(hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED)
+			{
+				
+			if (hdma_adc1.Instance->CR&(1 << 19))//buf0已满,DMA正常处理buf1,buf0可供软件使用
+			{
+				if(BZ_1==1)
+				{
+					for(int p = 0; p < (DMA_Size * 2); p++)//取出数据存成单字节
+					{
+						adc[0+2*p]=(ADC_DMA_ConvertedValue_0[p]>>8)&0x0F;
+						adc[1+2*p]=ADC_DMA_ConvertedValue_0[p]&0xFF;
+					}
+					for(int q = 0; q < DMA_Size; q++)//按照通讯协议的方式处理
+					{
+							adcx[0+q*3]=adc[1+q*4];
+							adcx[1+q*3]=(adc[0+q*4]<<4)|adc[2+q*4];
+							adcx[2+q*3]=adc[3+q*4];
+					}
+						flag_1=1;
+						BZ_1=0;
+				}	
+			}
+			else //buf1已满,DMA正常处理buf0,buf1可供软件使用
+			{
+				if(BZ_1==1)
+				{
+					for(int p = 0; p < (DMA_Size*2); p++)//取出数据存成单字节
+					{
+						adc[0+2*p]=(ADC_DMA_ConvertedValue_1[p]>>8)&0x0F;
+						adc[1+2*p]=ADC_DMA_ConvertedValue_1[p]&0xFF;
+					}
+					for(int q = 0;q < DMA_Size; q++)//按照通讯协议的方式处理
+					{
+							adcx[0+q*3]=adc[1+q*4];
+							adcx[1+q*3]=(adc[0+q*4]<<4)|adc[2+q*4];
+							adcx[2+q*3]=adc[3+q*4];
+					}
+						flag_1=1;
+						BZ_1=0;
+				}	
+			}
+			}	
+			
+		}
+  /* USER CODE END DMA2_Stream0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream3 global interrupt.
+  */
+void DMA2_Stream3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_sdio_rx);
+  /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USB On The Go FS global interrupt.
+  */
+void OTG_FS_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_FS_IRQn 0 */
+
+  /* USER CODE END OTG_FS_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+  /* USER CODE BEGIN OTG_FS_IRQn 1 */
+
+  /* USER CODE END OTG_FS_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream6 global interrupt.
+  */
+void DMA2_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_sdio_tx);
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 1 */
+}
+
+/* USER CODE BEGIN 1 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+		static int res;
+    if(htim==(&htim3)) {
+				if(hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED) {
+						if(BZ_2==1) {
+								//得到惯导原始数值并存入数组.
+								res = ADX_BurstRead();
+								//res = LIS3MDL_MagReadXYZ_uint8(lis3);
+								if (!res) {
+				//					GyroData.wx = imu.x_gyro / 10;
+				//					GyroData.wy = imu.y_gyro / 10;
+				//					GyroData.wz = imu.z_gyro / 10;
+				//					GyroData.accx = imu.x_accl * 1.25 / 1000;
+				//					GyroData.accy = imu.y_accl * 1.25 / 1000;
+				//					GyroData.accz = imu.z_accl * 1.25 / 1000;
+									tbuf[0+18*i] = (imu.x_accl >> 8) & 0XFF;//这里相当于小端又转大端了
+									tbuf[1+18*i] = imu.x_accl & 0XFF;
+									tbuf[2+18*i] = (imu.y_accl >> 8) & 0XFF;
+									tbuf[3+18*i] = imu.y_accl & 0XFF;
+									tbuf[4+18*i] = (imu.z_accl >> 8) & 0XFF;
+									tbuf[5+18*i] = imu.z_accl & 0XFF; 
+									tbuf[6+18*i] = (imu.x_gyro >> 8) & 0XFF;
+									tbuf[7+18*i] = imu.x_gyro & 0XFF;
+									tbuf[8+18*i] = (imu.y_gyro >> 8) & 0XFF;
+									tbuf[9+18*i] = imu.y_gyro & 0XFF;
+									tbuf[10+18*i] = (imu.z_gyro >> 8) & 0XFF;
+									tbuf[11+18*i] = imu.z_gyro & 0XFF;
+									tbuf[12+18*i] = lis3[1];
+									tbuf[13+18*i] = lis3[0];
+									tbuf[14+18*i] = lis3[3];
+									tbuf[15+18*i] = lis3[2];
+									tbuf[16+18*i] = lis3[5];
+									tbuf[17+18*i] = lis3[4];
+									i++;
+								}
+								if(i==10)	{ 
+										i=0;
+										for(h = 0; h < 180; h++) {
+												ttbuf[h]=tbuf[h];
+												flag_2=1;
+												BZ_2=0;
+										}
+								}
+								else{
+										flag_2=0;
+								} 
+						}
+				}
+		}
+}
+/* USER CODE END 1 */
